@@ -25,7 +25,7 @@ class SubjectSenderFormatter(object):
     return unicode(t)
 
 class TableStat(Stat):
-  _TABLE_SIZE = 40
+  _TABLE_SIZE = 100
 
   def __init__(self, title, formatters):
     Stat.__init__(self)
