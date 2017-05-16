@@ -32,7 +32,8 @@ def GetOptsMap():
         "record", "replay",
         "max_messages=", "random_subset",
         "skip_labels",
-        "is_gmail"])
+        "is_gmail",
+        "filter_labels="])
 
     if len(opts) == 0:
         print "Usage: main.py --username=<login> --password=<password> --server=<server_address> [options]"
@@ -48,6 +49,9 @@ def GetOptsMap():
         print "\t--use_ssl\t\t\tConnect to server using SSL"
         print "\t--server_mailbox=<inbox,mb1>\tOnly consider the given mailboxes (or label)"
         print "\t--is_gmail\tSet some common options for Gmail scanning. Auto-sets the server value, use_ssl, and skip_labels."
+        print "\t--filter_labels=<inbox,label1>\tFilter out messages in the given mailboxes (or label)."
+        print "\t                              \tIf an empty string or * is passed, filters out all mailboxes/labels."
+        print "\t                              \tPrepend a - to a label to not filter a specific label."
         print "\n"
         sys.exit()
 
@@ -79,6 +83,54 @@ def GetOptsMap():
 
     return opts_map
 
+def FilterLabeledMessages(mailObj, filterLabels, messageInfos):
+    logging.info("Filtering out labeled messages")
+
+    # Don't want to parse all these dates, since we already have them from the
+    # message infos above.
+    messageinfo.MessageInfo.SetParseDate(False)
+    mailboxes = mailObj.GetMailboxes()
+
+    filtered_message_infos_ids = []
+    message_infos_by_id = \
+      dict([(mi.GetMessageId(), mi) for mi in messageInfos])
+    
+    filtered_mailboxes = []
+    if len(filterLabels) != 0:
+      filtered_labels = filterLabels.split(",")
+      for filtered_label in filtered_labels:
+        if filtered_label == "*":
+          # Do nothing, all mailboxes have already been added
+          filtered_mailboxes = mailboxes
+        else:
+          if filtered_label[0] == "-":
+            real_label = filtered_label[1:]
+            if real_label in filtered_mailboxes:
+              filtered_mailboxes.remove(real_label)
+          else:
+            if not filtered_label in filtered_mailboxes:
+              filtered_mailboxes.append(filtered_label)
+
+    for mailbox in filtered_mailboxes:
+      filtered_messages = 0
+      mailObj.SelectMailbox(mailbox)
+      message_ids = mailObj.GetMessageIds()
+      for mid in message_ids:
+        if ((mid in message_infos_by_id) and (not (mid in filtered_message_infos_ids))):
+          filtered_message_infos_ids.append(mid)
+          filtered_messages += 1
+      logging.info("Filtered %d messages.", filtered_messages)
+    
+    filtered_messageinfos = []
+
+    for mi in messageInfos:
+      if not mi.GetMessageId() in filtered_message_infos_ids:
+        filtered_messageinfos.append(mi)
+
+    logging.info("Initial Message Count: %d", len(messageInfos))
+    logging.info("Filtered Message Count: %d", len(filtered_messageinfos))
+
+    return filtered_messageinfos
 
 def GetMessageInfos(opts):
 
@@ -124,6 +176,9 @@ def GetMessageInfos(opts):
     message_infos_by_id = dict(
         [(mi.GetMessageId(), mi) for mi in message_infos])
     messageinfo.MessageInfo.SetParseDate(True)
+
+    if "filter_labels" in opts:
+      message_infos = FilterLabeledMessages(m, opts["filter_labels"], message_infos)
 
     m.Logout()
 
