@@ -74,7 +74,7 @@ def GetOptsMap():
     if "is_gmail" in opts_map:
       opts_map["server"]="imap.gmail.com"
       opts_map["use_ssl"]=""
-      opts_map["skip_labels"]=""
+      opts_map["server_mailbox"]="[Gmail]/All Mail"
 
     print opts_map
 
