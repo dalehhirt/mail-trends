@@ -31,7 +31,8 @@ def GetOptsMap():
         # Development options
         "record", "replay",
         "max_messages=", "random_subset",
-        "skip_labels"])
+        "skip_labels",
+        "is_gmail"])
 
     if len(opts) == 0:
         print "Usage: main.py --username=<login> --password=<password> --server=<server_address> [options]"
@@ -46,6 +47,7 @@ def GetOptsMap():
         print "\t--me=<address>\t\t\tYour email address"
         print "\t--use_ssl\t\t\tConnect to server using SSL"
         print "\t--server_mailbox=<inbox,mb1>\tOnly consider the given mailboxes (or label)"
+        print "\t--is_gmail\tSet some common options for Gmail scanning. Auto-sets the server value, use_ssl, and skip_labels."
         print "\n"
         sys.exit()
 
@@ -64,6 +66,11 @@ def GetOptsMap():
     if "password" not in opts_map:
         opts_map["password"] = getpass.getpass(
             prompt="Password for %s: " % opts_map["username"])
+
+    if "is_gmail" in opts_map:
+      opts_map["server"]="imap.gmail.com"
+      opts_map["use_ssl"]=""
+      opts_map["skip_labels"]=""
 
     print opts_map
 
