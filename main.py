@@ -111,6 +111,7 @@ def FilterLabeledMessages(mailObj, filterLabels, messageInfos):
             filtered_mailboxes.append(filtered_label)
 
     for mailbox in filtered_mailboxes:
+      logging.info("Filtering mailbox '%s.'", mailbox)
       filtered_messages = 0
       mailObj.SelectMailbox(mailbox)
       message_ids = mailObj.GetMessageIds()
