@@ -48,9 +48,8 @@ def GetOptsMap():
         print "\t--me=<address>\t\t\tYour email address"
         print "\t--use_ssl\t\t\tConnect to server using SSL"
         print "\t--server_mailbox=<inbox,mb1>\tOnly consider the given mailboxes (or label)"
-        print "\t--is_gmail\tSet some common options for Gmail scanning. Auto-sets the server value, use_ssl, and skip_labels."
+        print "\t--is_gmail\tSet some common options for Gmail scanning. Auto-sets the server value, use_ssl, and filter_labels for [GMail] labels."
         print "\t--filter_labels=<inbox,label1>\tFilter out messages in the given mailboxes (or label)."
-        print "\t                              \tIf an empty string or * is passed, filters out all mailboxes/labels."
         print "\t                              \tPrepend a - to a label to not filter a specific label."
         print "\n"
         sys.exit()
@@ -75,6 +74,10 @@ def GetOptsMap():
       opts_map["server"]="imap.gmail.com"
       opts_map["use_ssl"]=""
       opts_map["server_mailbox"]="[Gmail]/All Mail"
+      # Only if we are filtering at all, should we explicitly not filter these mailboxes.  We append, in case someone actually does want to do so
+      gmail_filter="-[Gmail],-[Gmail]/All Mail,-[Gmail]/Chats,-[Gmail]/Drafts,-[Gmail]/Important,-[Gmail]/Sent Mail,-[Gmail]/Spam,-[Gmail]/Starred,-[Gmail]/Trash"
+      if "filter_labels" in opts_map:
+        opts_map["filter_labels"] =  gmail_filter + "," + opts_map["filter_labels"]
 
     print opts_map
 
@@ -95,21 +98,17 @@ def FilterLabeledMessages(mailObj, filterLabels, messageInfos):
     message_infos_by_id = \
       dict([(mi.GetMessageId(), mi) for mi in messageInfos])
     
-    filtered_mailboxes = []
+    filtered_mailboxes = mailboxes
     if len(filterLabels) != 0:
       filtered_labels = filterLabels.split(",")
       for filtered_label in filtered_labels:
-        if filtered_label == "*":
-          # Do nothing, all mailboxes have already been added
-          filtered_mailboxes = mailboxes
+        if filtered_label[0] == "-":
+          real_label = filtered_label[1:]
+          if real_label in filtered_mailboxes:
+            filtered_mailboxes.remove(real_label)
         else:
-          if filtered_label[0] == "-":
-            real_label = filtered_label[1:]
-            if real_label in filtered_mailboxes:
-              filtered_mailboxes.remove(real_label)
-          else:
-            if not filtered_label in filtered_mailboxes:
-              filtered_mailboxes.append(filtered_label)
+          if not filtered_label in filtered_mailboxes:
+            filtered_mailboxes.append(filtered_label)
 
     for mailbox in filtered_mailboxes:
       filtered_messages = 0
