@@ -74,7 +74,8 @@ def GetOptsMap():
       opts_map["server"]="imap.gmail.com"
       opts_map["use_ssl"]=""
       opts_map["server_mailbox"]="[Gmail]/All Mail"
-      # Only if we are filtering at all, should we explicitly not filter these mailboxes.  We append, in case someone actually does want to do so
+      # Only if we are filtering at all, should we explicitly not filter these mailboxes.  
+      # We append, in case someone actually does want to do so
       gmail_filter="-[Gmail],-[Gmail]/All Mail,-[Gmail]/Chats,-[Gmail]/Drafts,-[Gmail]/Important,-[Gmail]/Sent Mail,-[Gmail]/Spam,-[Gmail]/Starred,-[Gmail]/Trash"
       if "filter_labels" in opts_map:
         opts_map["filter_labels"] =  gmail_filter + "," + opts_map["filter_labels"]
