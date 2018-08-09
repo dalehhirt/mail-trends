@@ -18,7 +18,7 @@ InternalDate = re.compile(r'.*INTERNALDATE "'
 
 class MessageInfo(object):
     __oldestMessageSec = time.mktime([2027, 12, 31, 23, 59, 59, 0, 0, 0])
-    __newestMessageSec = time.mktime([1970, 1, 1, 0, 0, 0, 0, 0, 0])
+    __newestMessageSec = time.mktime([1970, 1, 1, 1, 0, 0, 0, 0, 0])
     __parseDates = True
     __hasDate = False
 
